@@ -216,26 +216,38 @@ class Client
      * @return string
      * @throws BaseException
      */
-    public function getFiles($request_id, $dest_path, $type = null)
+    public function getFiles($request_id, $dest_path = false, $type = null, $is_url = false)
     {
     	$params = array();
-    	if($type) {
+        $secondary = array();
+
+    	if ($type) {
     		$params['file_type'] = $type;
     	}
+    	if ($is_url) {
+    	    $params['get_url'] = true;
+        } else {
+            if (!$dest_path) {
+                throw new Error('missing_parameters', 'Missing Dest Path');
+            }
+            $fp = fopen($dest_path, 'wb');
+            $secondary = array(CURLOPT_FILE => $fp);
+        }
 
-    	$fp = fopen($dest_path, 'wb');
 
         $response = $this->rest->get(
             static::SIGNATURE_REQUEST_FILES_PATH . '/' . $request_id,
             $params,
             null,
-            array(CURLOPT_FILE => $fp)
+            $secondary
         );
 
         $this->checkResponse($response, false);
 
-        fwrite($fp, $response);
-        fclose($fp);
+        if (!$is_url) {
+            fwrite($fp, $response);
+            fclose($fp);
+        }
 
         return $response;
     }
