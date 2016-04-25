@@ -144,6 +144,10 @@ class SignatureRequest extends AbstractSignatureRequest
     public function __construct($response = null, $options = array())
     {
         $this->signatures = new SignatureList;
+        
+        if (isset($response->signature_request_id)) {
+          	$this->signature_request_id = $response->signature_request_id;
+        }
 
         parent::__construct($response, $options);
     }
